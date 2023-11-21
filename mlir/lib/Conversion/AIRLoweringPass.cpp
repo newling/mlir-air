@@ -486,8 +486,6 @@ AIRChannelInterfaceToAIRRtConversionImpl(OpBuilder builder,
       builder.create<arith::ConstantOp>(loc, i64Ty, IntegerAttr::get(i64Ty, 1));
 
   if (thisOpIsInShim) {
-    // if (!isFullMemcpy) {
-
     auto idTy = IntegerType::get(ctx, 32);
     // Get op id of the internal put/get op
     if (auto id_attr = theOtherOp->getAttrOfType<IntegerAttr>("id")) {

@@ -2561,6 +2561,41 @@ struct DmaToChannelPass : public air::impl::DmaToChannelBase<DmaToChannelPass> {
               }
             }
           }
+
+          depTracer.getPartialMemrefFromOp(
+              channel_op.getOperation(), sink_op_memref_reads,
+              sink_op_memref_writes, sink_op_scalar_ins, sink_op_scalar_outs);
+
+          assert((sink_op_memref_reads.size() ||
+                 sink_op_memref_writes.size()) &&
+                     "cannot read memref from channel op");
+
+          if (sink_wait_all_op) {
+            // Detect RAW deps
+            depTracer.template traceDependencyFromOp<air::WaitAllOp>(
+                sink_op_memref_reads, sink_wait_all_op, "RAW");
+            // Detect WAW and WAR deps
+            depTracer.template traceDependencyFromOp<air::WaitAllOp>(
+                sink_op_memref_writes, sink_wait_all_op, "WAW/WAR");
+
+            // Rebuild loop-carried dependency in scf loop nest
+            depTracer.reconnectLoopCarriedDependencyFromOp(op);
+          }
+
+          // Trace dependency of external put/get within scf loop
+          depTracer.template traceDependencyFromOp<air::AsyncOpInterface>(
+              sink_op_memref_reads,
+              dyn_cast<air::AsyncOpInterface>(channel_op.getOperation()),
+              "RAW");
+          depTracer.template traceDependencyFromOp<air::AsyncOpInterface>(
+              sink_op_memref_writes,
+              dyn_cast<air::AsyncOpInterface>(channel_op.getOperation()),
+              "WAW/WAR");
+          // Detect tile index deps
+          depTracer.traceTileIndices(
+              sink_op_memref_reads, sink_op_memref_writes, sink_op_scalar_ins,
+              sink_op_scalar_outs,
+              dyn_cast<air::AsyncOpInterface>(channel_op.getOperation()));
         }
 
         clearAsyncDependenciesOfAsyncOp(
