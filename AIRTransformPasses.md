@@ -3,6 +3,17 @@
 
 _Affine loop transformations_
 
+
+#### Options
+```
+-affine-opt-tile-sizes      : Affine loop tiling sizes
+-affine-opt-copy-depths     : Affine loop data copy loop depths
+-affine-opt-copy-fast-space : Fast memory space to use for affine data copy
+-affine-opt-copy-slow-space : slow memory space to use for affine data copy
+-affine-opt-tile-separate   : Affine loop tiling separates full and partial tiles
+-aaffine-opt-label          : Transform loops with the given label
+-affine-opt-post-label      : Label to apply to transformed loop nest
+```
 ### `-air-annotate-front-and-back-ops-in-for-pattern`
 
 _Annotates ops in for loop body which are at the front and back of the body's dependency graph_
@@ -539,6 +550,11 @@ _Give linalg ops a LinalgTransformMarker string attribute if they don't already 
 
 _AIR linalg operation statistics_
 
+### `-air-loop-fusion`
+
+_Hoist dma ops into perfectly nested loop_
+
+This pass performs loop fusion within air.segment op's region.
 ### `-air-loop-merging`
 
 _Merge several nested subloops into a single loop_
@@ -710,7 +726,7 @@ loops. There are three stages:
 3. Named ops are transformed to linalg GenericOps then all GenericOps
 are lowered to loops using `linalg::LinalgLoweringPattern`.
 
-The transforms are biased toward AIE.core regions and are intended
+The transforms are biased toward aie.core regions and are intended
 to be run after the air-to-aie pass.
 ### `-air-ping-pong-transform`
 
@@ -982,3 +998,12 @@ _Unroll loop by an integer factor_
 This pass unrolls a loop by an integer factor. This pass is used in the ping-pong
 pattern transformation to unroll a scf.for loop by 2 to ensure explicit
 representation of ping and pong processes, respectively.
+### `-air-unroll-outer-affine-loops`
+
+_Unroll loops in a perfectly nested affine for loop nest, outer to inner._
+
+
+#### Options
+```
+-depth : The number of outermost loops in the loop nest to unroll
+```
